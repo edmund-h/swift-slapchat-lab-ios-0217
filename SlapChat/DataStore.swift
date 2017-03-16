@@ -12,6 +12,9 @@ import CoreData
 class DataStore {
     
     static let sharedInstance = DataStore()
+    /*fileprivate*/ var messages: [Message] = []
+    static var dateFormatter = DateFormatter()
+    
     
     private init() {}
     
@@ -60,4 +63,35 @@ class DataStore {
         }
     }
     
+    func fetchData () {
+        let context = persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<Message> = Message.fetchRequest()
+        do{
+            messages = try context.fetch(fetchRequest)
+            sortMessages()
+        }catch{}
+        
+    }
+    
+    func addMessage(content: String, date: Date){
+        let message = Message(context: self.persistentContainer.viewContext)
+        message.content = content
+        if let messageDate = date as? NSDate{
+            message.createdAt = messageDate
+        }else {message.createdAt = NSDate() }
+        messages.append(message)
+        sortMessages()
+    }
+    
+    func getMessage(at index: Int)-> Message{
+        return messages[index]
+    }
+    
+    func getMessageCount()-> Int{
+        return messages.count
+    }
+    
+    func sortMessages(){
+        messages.sort(by: {$0.createdAt!.timeIntervalSinceNow < $1.createdAt!.timeIntervalSinceNow })
+    }
 }
